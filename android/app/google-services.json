@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "316548551513",
+    "project_id": "parkinn",
+    "storage_bucket": "parkinn.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:316548551513:android:c180270120fd2ce1def248",
+        "android_client_info": {
+          "package_name": "com.example.washinn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRRTMus_3pPpkNqkqhVPaL_g4WibpTw5o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
