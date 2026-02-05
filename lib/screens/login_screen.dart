@@ -3,6 +3,10 @@ import '../services/auth_service.dart';
 import '../utils/app_theme.dart';
 import 'signup_screen.dart';
 import 'home_screen.dart';
+import 'admin_screen.dart';
+
+const String ADMIN_EMAIL = "con717382@gmail.com";
+const String ADMIN_PASSWORD = "Deep1212@";
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,21 +29,42 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
-
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
     setState(() => _isLoading = true);
 
     try {
+      // =========================
+      // 🔥 HARDCODED ADMIN LOGIN
+      // =========================
+      if (email == ADMIN_EMAIL && password == ADMIN_PASSWORD) {
+        if (mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => const AdminScreen(),
+            ),
+          );
+        }
+        return; // ⛔ STOP HERE (no firebase)
+      }
+
+      // =========================
+      // 👤 NORMAL USER LOGIN
+      // =========================
       await _authService.signInWithEmailPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        email: email,
+        password: password,
       );
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(
+            builder: (_) => const HomeScreen(),
+          ),
         );
       }
     } catch (e) {

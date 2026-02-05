@@ -2,29 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Colors
-  static const Color primaryColor = Color(0xFF2C3E50);
-  static const Color secondaryColor = Color(0xFF3498DB);
-  static const Color accentColor = Color(0xFFE74C3C);
-  static const Color backgroundColor = Color(0xFFF8F9FA);
+  // 🎨 Blue–Green Premium Palette
+  static const Color primaryColor = Color(0xFF0FB9B1); // Teal
+  static const Color secondaryColor = Color(0xFF45AAF2); // Blue
+  static const Color accentColor = Color(0xFF2BCBBA); // Aqua
+  static const Color backgroundColor = Color(0xFFF4FBFA); // Light mint
   static const Color cardColor = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(0xFF2C3E50);
-  static const Color textSecondary = Color(0xFF7F8C8D);
-  static const Color successColor = Color(0xFF27AE60);
-  static const Color warningColor = Color(0xFFF39C12);
-  static const Color errorColor = Color(0xFFE74C3C);
 
-  // Gradient
+  static const Color textPrimary = Color(0xFF1E272E);
+  static const Color textSecondary = Color(0xFF576574);
+
+  static const Color successColor = Color(0xFF20BF6B);
+  static const Color warningColor = Color(0xFFF7B731);
+  static const Color errorColor = Color(0xFFEB3B5A);
+
+  // 🌈 Gradient (Blue → Green)
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF2C3E50), Color(0xFF3498DB)],
+    colors: [
+      Color(0xFF0FB9B1), // teal
+      Color(0xFF45AAF2), // blue
+    ],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
-  // Theme Data
+  // 🎯 Theme Data
   static ThemeData lightTheme = ThemeData(
     useMaterial3: true,
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: primaryColor,
       secondary: secondaryColor,
       error: errorColor,
@@ -52,9 +57,9 @@ class AppTheme {
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
-        elevation: 2,
+        elevation: 3,
         textStyle: GoogleFonts.poppins(
           fontSize: 16,
           fontWeight: FontWeight.w600,
@@ -67,7 +72,7 @@ class AppTheme {
         foregroundColor: primaryColor,
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
         side: const BorderSide(color: primaryColor, width: 2),
         textStyle: GoogleFonts.poppins(
@@ -81,19 +86,19 @@ class AppTheme {
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: primaryColor, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: errorColor),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -101,14 +106,14 @@ class AppTheme {
       hintStyle: GoogleFonts.poppins(color: textSecondary),
     ),
 
-    cardTheme: const CardThemeData(
-      elevation: 2,
+    cardTheme: CardThemeData(
+      elevation: 3,
       color: cardColor,
+      shadowColor: Colors.black12,
     ),
-
   );
 
-  // Text Styles
+    // 📝 Text Styles
   static TextStyle heading1 = GoogleFonts.poppins(
     fontSize: 32,
     fontWeight: FontWeight.bold,
@@ -129,19 +134,16 @@ class AppTheme {
 
   static TextStyle bodyLarge = GoogleFonts.poppins(
     fontSize: 16,
-    fontWeight: FontWeight.normal,
     color: textPrimary,
   );
 
   static TextStyle bodyMedium = GoogleFonts.poppins(
     fontSize: 14,
-    fontWeight: FontWeight.normal,
     color: textSecondary,
   );
 
   static TextStyle bodySmall = GoogleFonts.poppins(
     fontSize: 12,
-    fontWeight: FontWeight.normal,
     color: textSecondary,
   );
 
@@ -153,8 +155,8 @@ class AppTheme {
 }
 
 class AppConstants {
-  static const String appName = 'CarCare Pro';
-  static const String appTagline = 'Premium Car Detailing';
+  static const String appName = 'GO CLEANZ';
+  static const String appTagline = 'Premium Car Care';
 
   // Time slots
   static const List<String> timeSlots = [
