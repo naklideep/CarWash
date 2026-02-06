@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 import 'service_detail_screen.dart';
 import 'appointments_screen.dart'; // Yeh import add karo
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -175,7 +176,25 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  void _go(BuildContext context, String type) {
+  void _go(BuildContext context, String type) async {
+    int price = type == 'Half Wash'
+        ? 300
+        : type == 'Full Wash'
+        ? 500
+        : type == 'Premium'
+        ? 600
+        : 1600;
+
+    // 🔥 FIRESTORE WRITE (EVERY TAP)
+    await FirebaseFirestore.instance
+        .collection('service_selections')
+        .add({
+      'serviceName': type,
+      'price': price,
+      'selectedAt': Timestamp.now(),
+    });
+
+    // ➡️ SAME NAVIGATION AS BEFORE
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -183,6 +202,7 @@ class HomeTab extends StatelessWidget {
       ),
     );
   }
+
 }
 
 class _ServiceTile extends StatelessWidget {

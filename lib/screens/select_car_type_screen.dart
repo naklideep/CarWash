@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'slot_booking_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class SelectCarTypeScreen extends StatelessWidget {
   final String serviceType;
@@ -138,7 +140,18 @@ class SelectCarTypeScreen extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
+          onTap: () async {
+            // 🔥 WRITE SELECTION TO FIRESTORE
+            await FirebaseFirestore.instance
+                .collection('car_type_selections')
+                .add({
+              'serviceType': serviceType,
+              'carType': type,
+              'price': price,
+              'selectedAt': Timestamp.now(),
+            });
+
+            // ➡️ SAME NAVIGATION (UNCHANGED)
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -150,6 +163,7 @@ class SelectCarTypeScreen extends StatelessWidget {
               ),
             );
           },
+
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(20),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SlotBookingScreen extends StatefulWidget {
   final String serviceType;
@@ -46,6 +47,14 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
 
     setState(() {
       isBooking = true;
+    });
+    await FirebaseFirestore.instance.collection('appointments').add({
+      'serviceType': widget.serviceType,
+      'carType': widget.carType,
+      'price': widget.price,
+      'appointmentDate': Timestamp.fromDate(selectedDate!),
+      'timeSlot': selectedSlot,
+      'createdAt': Timestamp.now(),
     });
 
     // Simulate booking process

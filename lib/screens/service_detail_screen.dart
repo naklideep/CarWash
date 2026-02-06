@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'select_car_type_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class ServiceDetailScreen extends StatelessWidget {
   final String serviceType;
@@ -307,7 +309,17 @@ class ServiceDetailScreen extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
-                onTap: () {
+                onTap: () async {
+                  // 🔥 FIRESTORE WRITE
+                  await FirebaseFirestore.instance
+                      .collection('service_detail_views')
+                      .add({
+                    'serviceName': serviceType,
+                    'duration': duration,
+                    'viewedAt': Timestamp.now(),
+                  });
+
+                  // ➡️ SAME NAVIGATION (UNCHANGED)
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -315,6 +327,7 @@ class ServiceDetailScreen extends StatelessWidget {
                     ),
                   );
                 },
+
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16),
