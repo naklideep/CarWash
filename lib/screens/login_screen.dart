@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
 import '../utils/app_theme.dart';
 import 'signup_screen.dart';
@@ -19,7 +20,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
+  final AuthService _authService = AuthService();
+
   bool _isLoading = false;
   bool _obscurePassword = true;
 
@@ -29,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordController.dispose();
     super.dispose();
   }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -42,15 +45,25 @@ class _LoginScreenState extends State<LoginScreen> {
       // 🔥 HARDCODED ADMIN LOGIN
       // =========================
       if (email == ADMIN_EMAIL && password == ADMIN_PASSWORD) {
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => const AdminScreen(),
-            ),
-          );
+        // 🔥 Sign in admin properly
+        await _authService.signInWithEmailPassword(
+          email: email,
+          password: password,
+        );
+
+        final user = FirebaseAuth.instance.currentUser;
+        if (user == null) {
+          throw Exception('Admin login failed');
         }
-        return; // ⛔ STOP HERE (no firebase)
+
+        if (!mounted) return;
+
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const AdminScreen()),
+        );
+        return;
       }
+
 
       // =========================
       // 👤 NORMAL USER LOGIN
@@ -60,22 +73,32 @@ class _LoginScreenState extends State<LoginScreen> {
         password: password,
       );
 
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => const HomeScreen(),
-          ),
-        );
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user == null) {
+        throw Exception('Login failed');
       }
+
+      // 🔒 EMAIL VERIFICATION CHECK
+      if (!user.emailVerified) {
+        await FirebaseAuth.instance.signOut();
+        throw Exception('email-not-verified');
+      }
+
+      if (!mounted) return;
+
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppTheme.errorColor,
-          ),
-        );
-      }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_friendlyError(e.toString())),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -83,12 +106,86 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  String _friendlyError(String error) {
+    if (error.contains('user-not-found')) {
+      return 'No account found with this email';
+    } else if (error.contains('wrong-password')) {
+      return 'Incorrect password';
+    } else if (error.contains('email-not-verified')) {
+      return 'Please verify your email first';
+    } else if (error.contains('too-many-requests')) {
+      return 'Too many attempts. Try again later';
+    }
+    return 'Login failed. Please try again';
+  }
+
+  void _showForgotPasswordDialog() {
+    final emailController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Password'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Enter your email to receive a password reset link.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await _authService.resetPassword(
+                  emailController.text.trim(),
+                );
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Password reset email sent!'),
+                      backgroundColor: AppTheme.successColor,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        e.toString().replaceFirst('Exception: ', ''),
+                      ),
+                      backgroundColor: AppTheme.errorColor,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -96,7 +193,6 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const SizedBox(height: 60),
 
-                // Logo and title
                 Container(
                   height: 100,
                   width: 100,
@@ -129,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 48),
 
-                // Email field
+                // Email
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -141,7 +237,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
@@ -150,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 20),
 
-                // Password field
+                // Password
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -159,10 +256,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
                       },
                     ),
                   ),
@@ -179,13 +280,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 12),
 
-                // Forgot password
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      _showForgotPasswordDialog();
-                    },
+                    onPressed: _showForgotPasswordDialog,
                     child: Text(
                       'Forgot Password?',
                       style: AppTheme.bodyMedium.copyWith(
@@ -197,7 +295,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 24),
 
-                // Login button
                 SizedBox(
                   height: 56,
                   child: ElevatedButton(
@@ -207,8 +304,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       height: 24,
                       width: 24,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
                         strokeWidth: 2,
+                        color: Colors.white,
                       ),
                     )
                         : const Text('Login'),
@@ -217,7 +314,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 24),
 
-                // Sign up link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -230,7 +326,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const SignupScreen(),
+                            builder: (_) => const SignupScreen(),
                           ),
                         );
                       },
@@ -248,63 +344,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showForgotPasswordDialog() {
-    final emailController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reset Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Enter your email to receive a password reset link.'),
-            const SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await _authService.resetPassword(emailController.text.trim());
-                if (mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Password reset email sent!'),
-                      backgroundColor: AppTheme.successColor,
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(e.toString()),
-                      backgroundColor: AppTheme.errorColor,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Send'),
-          ),
-        ],
       ),
     );
   }

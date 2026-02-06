@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import '../utils/app_theme.dart';
+import 'appointments_screen.dart';
+import 'profile_screen.dart';
 import 'service_detail_screen.dart';
-import 'appointments_screen.dart'; // Yeh import add karo
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,8 +15,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = const [
     HomeTab(),
-    AppointmentsScreen(), // Yeh updated screen
-    Center(child: Text('Profile')),
+    AppointmentsScreen(),
+    ProfileScreen(),
   ];
 
   @override
@@ -31,9 +29,18 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: const Color(0xFF00897B),
         unselectedItemColor: Colors.grey,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.event_note_rounded), label: 'Bookings'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_rounded),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.event_note_rounded),
+            label: 'Bookings',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
         ],
       ),
     );
@@ -45,156 +52,150 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              const Color(0xFF26C6DA).withOpacity(0.15),
-              const Color(0xFF00897B).withOpacity(0.05),
-              Colors.white,
-            ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF26C6DA).withOpacity(0.15),
+            const Color(0xFF00897B).withOpacity(0.05),
+            Colors.white,
+          ],
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ShaderMask(
-                          shaderCallback: (bounds) => const LinearGradient(
-                            colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
-                          ).createShader(bounds),
-                          child: const Text(
-                            'GO CLEANZ',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Fresh & Clean Every Time',
+      ),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // HEADER
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShaderMask(
+                        shaderCallback: (bounds) =>
+                            const LinearGradient(
+                              colors: [
+                                Color(0xFF26C6DA),
+                                Color(0xFF00897B),
+                              ],
+                            ).createShader(bounds),
+                        child: const Text(
+                          'GO CLEANZ',
                           style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
                           ),
                         ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Fresh & Clean Every Time',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF26C6DA).withOpacity(0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF26C6DA),
+                          Color(0xFF00897B),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.directions_car_rounded,
-                        color: Colors.white,
-                        size: 28,
-                      ),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
-                ),
+                    child: const Icon(
+                      Icons.directions_car_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ],
               ),
+            ),
 
-              // Services List
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    const SizedBox(height: 8),
-                    _ServiceTile(
-                      title: 'Half Wash',
-                      price: '₹300',
-                      icon: Icons.water_drop_rounded,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF4DD0E1), Color(0xFF26C6DA)],
-                      ),
-                      points: ['Exterior Foam Wash', 'Tyre Polishing'],
-                      onTap: () => _go(context, 'Half Wash'),
+            // SERVICES
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _ServiceTile(
+                    title: 'Half Wash',
+                    price: '₹300',
+                    icon: Icons.water_drop_rounded,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF4DD0E1), Color(0xFF26C6DA)],
                     ),
-                    _ServiceTile(
-                      title: 'Full Wash',
-                      price: '₹500',
-                      icon: Icons.local_car_wash_rounded,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF26C6DA), Color(0xFF00ACC1)],
-                      ),
-                      points: ['Interior + Exterior', 'Vacuum Cleaning', 'AC Vents'],
-                      onTap: () => _go(context, 'Full Wash'),
+                    points: const [
+                      'Exterior Foam Wash',
+                      'Tyre Polishing',
+                    ],
+                    onTap: () => _go(context, 'Half Wash'),
+                  ),
+                  _ServiceTile(
+                    title: 'Full Wash',
+                    price: '₹500',
+                    icon: Icons.local_car_wash_rounded,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF26C6DA), Color(0xFF00ACC1)],
                     ),
-                    _ServiceTile(
-                      title: 'Premium',
-                      price: '₹600',
-                      icon: Icons.stars_rounded,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00ACC1), Color(0xFF00897B)],
-                      ),
-                      points: ['Steam Wash', 'Sanitization', 'Engine Bay'],
-                      onTap: () => _go(context, 'Premium'),
+                    points: const [
+                      'Interior + Exterior',
+                      'Vacuum Cleaning',
+                      'AC Vents',
+                    ],
+                    onTap: () => _go(context, 'Full Wash'),
+                  ),
+                  _ServiceTile(
+                    title: 'Premium',
+                    price: '₹600',
+                    icon: Icons.stars_rounded,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF00ACC1), Color(0xFF00897B)],
                     ),
-                    _ServiceTile(
-                      title: 'Pro',
-                      price: '₹1600',
-                      icon: Icons.auto_awesome_rounded,
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00897B), Color(0xFF00695C)],
-                      ),
-                      points: ['Rubbing & Polishing', 'Deep Cleaning', 'Wax Coating'],
-                      onTap: () => _go(context, 'Pro'),
+                    points: const [
+                      'Steam Wash',
+                      'Sanitization',
+                      'Engine Bay',
+                    ],
+                    onTap: () => _go(context, 'Premium'),
+                  ),
+                  _ServiceTile(
+                    title: 'Pro',
+                    price: '₹1600',
+                    icon: Icons.auto_awesome_rounded,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF00897B), Color(0xFF00695C)],
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
+                    points: const [
+                      'Rubbing & Polishing',
+                      'Deep Cleaning',
+                      'Wax Coating',
+                    ],
+                    onTap: () => _go(context, 'Pro'),
+                  ),
+                  const SizedBox(height: 16),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  void _go(BuildContext context, String type) async {
-    int price = type == 'Half Wash'
-        ? 300
-        : type == 'Full Wash'
-        ? 500
-        : type == 'Premium'
-        ? 600
-        : 1600;
-
-    // 🔥 FIRESTORE WRITE (EVERY TAP)
-    await FirebaseFirestore.instance
-        .collection('service_selections')
-        .add({
-      'serviceName': type,
-      'price': price,
-      'selectedAt': Timestamp.now(),
-    });
-
-    // ➡️ SAME NAVIGATION AS BEFORE
+  void _go(BuildContext context, String type) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -202,7 +203,6 @@ class HomeTab extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class _ServiceTile extends StatelessWidget {
@@ -237,133 +237,75 @@ class _ServiceTile extends StatelessWidget {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Icon with gradient
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: gradient,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF26C6DA).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 28,
-                  ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  gradient: gradient,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                const SizedBox(width: 16),
-
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
-                        ),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      const SizedBox(height: 8),
-                      ...points.map((e) => Padding(
+                    ),
+                    const SizedBox(height: 8),
+                    ...points.map(
+                          (e) => Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Row(
                           children: [
-                            Container(
-                              width: 16,
-                              height: 16,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
-                                ),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.check,
-                                color: Colors.white,
-                                size: 12,
-                              ),
+                            const Icon(
+                              Icons.check,
+                              size: 14,
+                              color: Color(0xFF00897B),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                e,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey[700],
-                                ),
+                            const SizedBox(width: 6),
+                            Text(
+                              e,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[700],
                               ),
                             ),
                           ],
                         ),
-                      )),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text(
-                            'Starting at ',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          ShaderMask(
-                            shaderCallback: (bounds) => const LinearGradient(
-                              colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
-                            ).createShader(bounds),
-                            child: Text(
-                              price,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
-                    ],
-                  ),
-                ),
-
-                // Arrow
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF26C6DA).withOpacity(0.15),
-                        const Color(0xFF00897B).withOpacity(0.15),
-                      ],
                     ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 16,
-                    color: Color(0xFF00897B),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      price,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF00897B),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: Color(0xFF00897B),
+              ),
+            ],
           ),
         ),
       ),

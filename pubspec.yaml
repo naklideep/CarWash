@@ -35,9 +35,11 @@ dependencies:
   table_calendar: ^3.1.2
 
   # Firebase
-  firebase_core: ^2.24.2
-  firebase_auth: ^4.15.3
-  cloud_firestore: ^4.13.6
+
+  firebase_core: ^2.25.4
+  firebase_auth: ^4.17.4
+  cloud_firestore: ^4.15.4
+
 
   # UI / Utils
   google_fonts: ^6.1.0

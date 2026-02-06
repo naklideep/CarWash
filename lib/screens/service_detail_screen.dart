@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'select_car_type_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-
-class ServiceDetailScreen extends StatelessWidget {
+class ServiceDetailScreen extends StatefulWidget {
   final String serviceType;
 
   const ServiceDetailScreen({super.key, required this.serviceType});
 
+  @override
+  State<ServiceDetailScreen> createState() => _ServiceDetailScreenState();
+}
+
+class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
+
   Map<String, dynamic> getServiceData() {
-    switch (serviceType) {
+    switch (widget.serviceType) {
       case 'Half Wash':
         return {
           'features': [
@@ -22,6 +26,7 @@ class ServiceDetailScreen extends StatelessWidget {
           ),
           'duration': '30 mins',
         };
+
       case 'Full Wash':
         return {
           'features': [
@@ -35,6 +40,7 @@ class ServiceDetailScreen extends StatelessWidget {
           ),
           'duration': '45 mins',
         };
+
       case 'Premium':
         return {
           'features': [
@@ -48,6 +54,7 @@ class ServiceDetailScreen extends StatelessWidget {
           ),
           'duration': '60 mins',
         };
+
       case 'Pro':
         return {
           'features': [
@@ -61,6 +68,7 @@ class ServiceDetailScreen extends StatelessWidget {
           ),
           'duration': '90 mins',
         };
+
       default:
         return {
           'features': [],
@@ -97,37 +105,23 @@ class ServiceDetailScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // Custom App Bar
+              // App Bar
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                        color: const Color(0xFF00897B),
-                        onPressed: () => Navigator.pop(context),
-                      ),
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      color: const Color(0xFF00897B),
+                      onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        serviceType,
+                        widget.serviceType,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
                         ),
                       ),
                     ),
@@ -141,135 +135,73 @@ class ServiceDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Service Header Card
+                      // Header Card
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           gradient: gradient,
                           borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF26C6DA).withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
                         ),
                         child: Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                icon,
-                                color: Colors.white,
-                                size: 40,
-                              ),
-                            ),
+                            Icon(icon, color: Colors.white, size: 40),
                             const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Service Duration',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('Service Duration',
+                                    style: TextStyle(color: Colors.white70)),
+                                Text(
+                                  duration,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    duration,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
 
                       const SizedBox(height: 24),
-
-                      // Service Includes Section
-                      const Text(
-                        'Service Includes',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
-                        ),
-                      ),
+                      const Text('Service Includes',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
 
-                      // Features List
-                      ...features.map((feature) => Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF26C6DA).withOpacity(0.08),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
+                      ...features.map(
+                            (feature) => Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.check_circle,
+                                  color: Color(0xFF00897B)),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(feature['title']!,
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    Text(feature['desc']!,
+                                        style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[600])),
+                                  ],
                                 ),
-                                borderRadius: BorderRadius.circular(10),
                               ),
-                              child: const Icon(
-                                Icons.check_rounded,
-                                color: Colors.white,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    feature['title']!,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF212121),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    feature['desc']!,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      )),
-
+                      ),
                       const SizedBox(height: 80),
                     ],
                   ),
@@ -279,82 +211,43 @@ class ServiceDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF26C6DA).withOpacity(0.4),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+
+      // ✅ SAME BUTTON — SAME UI — SAME FLOW
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32), // 👈 more bottom padding
+        child: SizedBox(
+          height: 42,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      SelectCarTypeScreen(serviceType: widget.serviceType),
                 ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () async {
-                  // 🔥 FIRESTORE WRITE
-                  await FirebaseFirestore.instance
-                      .collection('service_detail_views')
-                      .add({
-                    'serviceName': serviceType,
-                    'duration': duration,
-                    'viewedAt': Timestamp.now(),
-                  });
-
-                  // ➡️ SAME NAVIGATION (UNCHANGED)
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SelectCarTypeScreen(serviceType: serviceType),
-                    ),
-                  );
-                },
-
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Text(
-                        'Select Car Type',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ),
+              );
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              alignment: Alignment.center,
+              child: const Text(
+                'Select Car Type',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
         ),
       ),
+
     );
   }
 }

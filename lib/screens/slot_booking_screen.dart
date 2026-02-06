@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class SlotBookingScreen extends StatefulWidget {
   final String serviceType;
@@ -29,6 +31,31 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
     '3:00 PM',
     '5:00 PM',
   ];
+  Stream<Map<String, int>> slotCountStream(DateTime date) {
+    return FirebaseFirestore.instance
+        .collection('appointments')
+        .where(
+      'appointmentDate',
+      isGreaterThanOrEqualTo: Timestamp.fromDate(
+        DateTime(date.year, date.month, date.day),
+      ),
+    )
+        .where(
+      'appointmentDate',
+      isLessThan: Timestamp.fromDate(
+        DateTime(date.year, date.month, date.day + 1),
+      ),
+    )
+        .snapshots()
+        .map((snapshot) {
+      final Map<String, int> counts = {};
+      for (var doc in snapshot.docs) {
+        final slot = doc['timeSlot'];
+        counts[slot] = (counts[slot] ?? 0) + 1;
+      }
+      return counts;
+    });
+  }
 
   Future<void> _confirmBooking() async {
     if (selectedDate == null || selectedSlot == null) {
@@ -48,7 +75,9 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
     setState(() {
       isBooking = true;
     });
+    final userId = FirebaseAuth.instance.currentUser!.uid;
     await FirebaseFirestore.instance.collection('appointments').add({
+      'userId': userId,
       'serviceType': widget.serviceType,
       'carType': widget.carType,
       'price': widget.price,
@@ -384,65 +413,109 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: timeSlots.map((slot) {
-                          final isSelected = selectedSlot == slot;
-                          return GestureDetector(
-                            onTap: () => setState(() => selectedSlot = slot),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                                vertical: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: isSelected
-                                    ? const LinearGradient(
-                                  colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
-                                )
-                                    : null,
-                                color: isSelected ? null : Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: isSelected
-                                      ? Colors.transparent
-                                      : const Color(0xFF26C6DA).withOpacity(0.3),
-                                  width: 2,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: isSelected
-                                        ? const Color(0xFF26C6DA).withOpacity(0.3)
-                                        : Colors.black.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.access_time_rounded,
-                                    color: isSelected ? Colors.white : const Color(0xFF00897B),
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    slot,
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.white : const Color(0xFF212121),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ],
+                      if (selectedDate == null)
+                        const Text('Select a date first')
+                      else
+                        StreamBuilder<QuerySnapshot>(
+                          stream: FirebaseFirestore.instance
+                              .collection('appointments')
+                              .where(
+                            'appointmentDate',
+                            isGreaterThanOrEqualTo: Timestamp.fromDate(
+                              DateTime(
+                                selectedDate!.year,
+                                selectedDate!.month,
+                                selectedDate!.day,
                               ),
                             ),
-                          );
-                        }).toList(),
-                      ),
+                          )
+                              .where(
+                            'appointmentDate',
+                            isLessThan: Timestamp.fromDate(
+                              DateTime(
+                                selectedDate!.year,
+                                selectedDate!.month,
+                                selectedDate!.day + 1,
+                              ),
+                            ),
+                          )
+                              .snapshots(),
+                          builder: (context, snapshot) {
+                            final Map<String, int> slotCounts = {};
+
+                            if (snapshot.hasData) {
+                              for (var doc in snapshot.data!.docs) {
+                                final slot = doc['timeSlot'];
+                                slotCounts[slot] = (slotCounts[slot] ?? 0) + 1;
+                              }
+                            }
+
+                            return Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: timeSlots.map((slot) {
+                                final isSelected = selectedSlot == slot;
+                                final isFull = (slotCounts[slot] ?? 0) >= 2;
+
+                                return GestureDetector(
+                                  onTap: isFull
+                                      ? null
+                                      : () => setState(() => selectedSlot = slot),
+                                  child: Opacity(
+                                    opacity: isFull ? 0.4 : 1,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24,
+                                        vertical: 16,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: isSelected
+                                            ? const LinearGradient(
+                                          colors: [
+                                            Color(0xFF26C6DA),
+                                            Color(0xFF00897B)
+                                          ],
+                                        )
+                                            : null,
+                                        color: isSelected ? null : Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? Colors.transparent
+                                              : const Color(0xFF26C6DA).withOpacity(0.3),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.access_time_rounded,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : const Color(0xFF00897B),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            isFull ? '$slot (Full)' : slot,
+                                            style: TextStyle(
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : const Color(0xFF212121),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            );
+                          },
+                        ),
+
 
                       const SizedBox(height: 80),
                     ],

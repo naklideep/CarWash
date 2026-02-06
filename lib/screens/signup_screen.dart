@@ -12,12 +12,15 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _authService = AuthService();
+
+  final AuthService _authService = AuthService();
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -31,7 +34,6 @@ class _SignupScreenState extends State<SignupScreen> {
     _confirmPasswordController.dispose();
     super.dispose();
   }
-
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -40,29 +42,35 @@ class _SignupScreenState extends State<SignupScreen> {
     try {
       await _authService.signUpWithEmailPassword(
         email: _emailController.text.trim(),
-        password: _passwordController.text,
+        password: _passwordController.text.trim(),
         name: _nameController.text.trim(),
         phone: _phoneController.text.trim(),
       );
 
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppTheme.errorColor,
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Account created! Please verify your email before login.',
           ),
-        );
-      }
+        ),
+      );
+
+      Navigator.pop(context); // back to LoginScreen
+
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        ),
+      );
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -74,7 +82,7 @@ class _SignupScreenState extends State<SignupScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
@@ -98,24 +106,22 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 32),
 
-                // Name field
+                // Full Name
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
                     labelText: 'Full Name',
                     prefixIcon: Icon(Icons.person_outline),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                  value == null || value.isEmpty
+                      ? 'Please enter your name'
+                      : null,
                 ),
 
                 const SizedBox(height: 16),
 
-                // Email field
+                // Email
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -127,7 +133,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
@@ -136,7 +143,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 16),
 
-                // Phone field
+                // Phone
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
@@ -157,7 +164,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 16),
 
-                // Password field
+                // Password
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
@@ -166,10 +173,14 @@ class _SignupScreenState extends State<SignupScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: () {
-                        setState(() => _obscurePassword = !_obscurePassword);
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
                       },
                     ),
                   ),
@@ -186,7 +197,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 16),
 
-                // Confirm password field
+                // Confirm Password
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirmPassword,
@@ -195,10 +206,15 @@ class _SignupScreenState extends State<SignupScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                        _obscureConfirmPassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                       ),
                       onPressed: () {
-                        setState(() => _obscureConfirmPassword = !_obscureConfirmPassword);
+                        setState(() {
+                          _obscureConfirmPassword =
+                          !_obscureConfirmPassword;
+                        });
                       },
                     ),
                   ),
@@ -215,7 +231,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 32),
 
-                // Signup button
+                // Sign Up Button
                 SizedBox(
                   height: 56,
                   child: ElevatedButton(
@@ -225,8 +241,8 @@ class _SignupScreenState extends State<SignupScreen> {
                       height: 24,
                       width: 24,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
                         strokeWidth: 2,
+                        color: Colors.white,
                       ),
                     )
                         : const Text('Sign Up'),
@@ -235,7 +251,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 const SizedBox(height: 24),
 
-                // Login link
+                // Login Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -244,9 +260,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       style: AppTheme.bodyMedium,
                     ),
                     TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                      onPressed: () => Navigator.pop(context),
                       child: Text(
                         'Login',
                         style: AppTheme.bodyMedium.copyWith(

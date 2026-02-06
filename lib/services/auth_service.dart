@@ -6,25 +6,29 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   User? get currentUser => _auth.currentUser;
-
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  Future<UserCredential> signUpWithEmailPassword({
+  // ================= SIGN UP =================
+  Future<void> signUpWithEmailPassword({
     required String email,
     required String password,
     required String name,
     required String phone,
   }) async {
+    UserCredential userCredential;
+
     try {
-      final userCredential = await _auth.createUserWithEmailAndPassword(
+      // 1️⃣ Create auth user
+      userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      await _firestore
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .set({
+      final user = userCredential.user!;
+
+      // 2️⃣ Save user to Firestore
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
         'name': name,
         'email': email,
         'phone': phone,
@@ -32,23 +36,31 @@ class AuthService {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      await userCredential.user!.updateDisplayName(name);
+      // 3️⃣ Update profile + send verification
+      await user.updateDisplayName(name);
+      await user.sendEmailVerification();
 
-      // Optional but recommended
-      await userCredential.user!.sendEmailVerification();
-
-      return userCredential;
     } on FirebaseAuthException catch (e) {
       throw Exception(_handleAuthException(e));
+    } catch (e) {
+      // 🔥 ROLLBACK AUTH USER IF ANY STEP FAILS
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.delete();
+      }
+
+      print('🔥 SIGNUP ERROR REAL MESSAGE: $e');
+      throw Exception(e.toString());
     }
   }
 
-  Future<UserCredential> signInWithEmailPassword({
+  // ================= LOGIN =================
+  Future<void> signInWithEmailPassword({
     required String email,
     required String password,
   }) async {
     try {
-      return await _auth.signInWithEmailAndPassword(
+      await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -57,19 +69,22 @@ class AuthService {
     }
   }
 
+  // ================= LOGOUT =================
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
+  // ================= USER DATA =================
   Future<Map<String, dynamic>?> getUserData(String uid) async {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
-      return doc.data() as Map<String, dynamic>?;
+      return doc.data();
     } catch (_) {
       return null;
     }
   }
 
+  // ================= RESET PASSWORD =================
   Future<void> resetPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
@@ -78,6 +93,7 @@ class AuthService {
     }
   }
 
+  // ================= ERROR HANDLER =================
   String _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':

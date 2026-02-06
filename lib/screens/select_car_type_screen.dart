@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'slot_booking_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 
 class SelectCarTypeScreen extends StatelessWidget {
   final String serviceType;
@@ -26,7 +24,7 @@ class SelectCarTypeScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // Custom App Bar
+              // App Bar
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -64,7 +62,6 @@ class SelectCarTypeScreen extends StatelessWidget {
                 ),
               ),
 
-              // Subtitle
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Align(
@@ -81,7 +78,6 @@ class SelectCarTypeScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Car Type Cards
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -140,18 +136,8 @@ class SelectCarTypeScreen extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () async {
-            // 🔥 WRITE SELECTION TO FIRESTORE
-            await FirebaseFirestore.instance
-                .collection('car_type_selections')
-                .add({
-              'serviceType': serviceType,
-              'carType': type,
-              'price': price,
-              'selectedAt': Timestamp.now(),
-            });
-
-            // ➡️ SAME NAVIGATION (UNCHANGED)
+          onTap: () {
+            // 🔥 ONLY NAVIGATION — NO FIRESTORE
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -163,13 +149,11 @@ class SelectCarTypeScreen extends StatelessWidget {
               ),
             );
           },
-
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
               children: [
-                // Car Icon with Gradient
                 Container(
                   width: 72,
                   height: 72,
@@ -184,16 +168,9 @@ class SelectCarTypeScreen extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 36,
-                  ),
+                  child: Icon(icon, color: Colors.white, size: 36),
                 ),
-
                 const SizedBox(width: 20),
-
-                // Car Details
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -203,7 +180,6 @@ class SelectCarTypeScreen extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF212121),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -215,64 +191,20 @@ class SelectCarTypeScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  const Color(0xFF26C6DA).withOpacity(0.2),
-                                  const Color(0xFF00897B).withOpacity(0.2),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.currency_rupee,
-                                  size: 16,
-                                  color: Color(0xFF00897B),
-                                ),
-                                Text(
-                                  '$price',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF00897B),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      Text(
+                        '₹$price',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF00897B),
+                        ),
                       ),
                     ],
                   ),
                 ),
+                Icon(Icons.chevron_right_rounded,
+                    size: 28, color: Colors.grey[500]),
 
-                // Arrow Icon
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF26C6DA).withOpacity(0.15),
-                        const Color(0xFF00897B).withOpacity(0.15),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 18,
-                    color: Color(0xFF00897B),
-                  ),
-                ),
               ],
             ),
           ),

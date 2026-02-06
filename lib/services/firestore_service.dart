@@ -60,7 +60,7 @@ class FirestoreService {
     return _firestore
         .collection('appointments')
         .where('userId', isEqualTo: userId)
-        .orderBy('appointmentDate', descending: true)
+        .orderBy('createdAt', descending: true) // ✅ SAFE
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -73,7 +73,7 @@ class FirestoreService {
   Stream<List<AppointmentModel>> getAllAppointments() {
     return _firestore
         .collection('appointments')
-        .orderBy('appointmentDate', descending: true)
+        .orderBy('createdAt', descending: true) // ✅ SAFE
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
