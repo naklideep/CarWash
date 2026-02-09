@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'appointments_screen.dart';
 import 'profile_screen.dart';
 import 'service_detail_screen.dart';
+import 'slot_booking_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -47,8 +48,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class HomeTab extends StatelessWidget {
+class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
+
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  bool isCarSelected = true;
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +98,6 @@ class HomeTab extends StatelessWidget {
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
-                            letterSpacing: 1.2,
                           ),
                         ),
                       ),
@@ -104,21 +111,28 @@ class HomeTab extends StatelessWidget {
                       ),
                     ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF26C6DA),
-                          Color(0xFF00897B),
-                        ],
+
+                  GestureDetector(
+                    onTap: () =>
+                        setState(() => isCarSelected = !isCarSelected),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF26C6DA),
+                            Color(0xFF00897B),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.directions_car_rounded,
-                      color: Colors.white,
-                      size: 28,
+                      child: Icon(
+                        isCarSelected
+                            ? Icons.directions_car_rounded
+                            : Icons.two_wheeler_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
                   ),
                 ],
@@ -129,64 +143,9 @@ class HomeTab extends StatelessWidget {
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _ServiceTile(
-                    title: 'Half Wash',
-                    price: '₹300',
-                    icon: Icons.water_drop_rounded,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF4DD0E1), Color(0xFF26C6DA)],
-                    ),
-                    points: const [
-                      'Exterior Foam Wash',
-                      'Tyre Polishing',
-                    ],
-                    onTap: () => _go(context, 'Half Wash'),
-                  ),
-                  _ServiceTile(
-                    title: 'Full Wash',
-                    price: '₹500',
-                    icon: Icons.local_car_wash_rounded,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF26C6DA), Color(0xFF00ACC1)],
-                    ),
-                    points: const [
-                      'Interior + Exterior',
-                      'Vacuum Cleaning',
-                      'AC Vents',
-                    ],
-                    onTap: () => _go(context, 'Full Wash'),
-                  ),
-                  _ServiceTile(
-                    title: 'Premium',
-                    price: '₹600',
-                    icon: Icons.stars_rounded,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF00ACC1), Color(0xFF00897B)],
-                    ),
-                    points: const [
-                      'Steam Wash',
-                      'Sanitization',
-                      'Engine Bay',
-                    ],
-                    onTap: () => _go(context, 'Premium'),
-                  ),
-                  _ServiceTile(
-                    title: 'Pro',
-                    price: '₹1600',
-                    icon: Icons.auto_awesome_rounded,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF00897B), Color(0xFF00695C)],
-                    ),
-                    points: const [
-                      'Rubbing & Polishing',
-                      'Deep Cleaning',
-                      'Wax Coating',
-                    ],
-                    onTap: () => _go(context, 'Pro'),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                children: isCarSelected
+                    ? _carServices(context)
+                    : _bikeServices(context),
               ),
             ),
           ],
@@ -195,16 +154,123 @@ class HomeTab extends StatelessWidget {
     );
   }
 
-  void _go(BuildContext context, String type) {
+  // ================= CAR SERVICES =================
+  List<Widget> _carServices(BuildContext context) => [
+    _ServiceTile(
+      title: 'Half Wash',
+      price: '₹300',
+      icon: Icons.water_drop_rounded,
+      gradient: const LinearGradient(
+        colors: [Color(0xFF4DD0E1), Color(0xFF26C6DA)],
+      ),
+      points: const ['Exterior Foam Wash', 'Tyre Polishing'],
+      onTap: () => _goCar(context, 'Half Wash'),
+    ),
+    _ServiceTile(
+      title: 'Full Wash',
+      price: '₹500',
+      icon: Icons.local_car_wash_rounded,
+      gradient: const LinearGradient(
+        colors: [Color(0xFF26C6DA), Color(0xFF00ACC1)],
+      ),
+      points: const [
+        'Interior + Exterior',
+        'Vacuum Cleaning',
+        'AC Vents'
+      ],
+      onTap: () => _goCar(context, 'Full Wash'),
+    ),
+    _ServiceTile(
+      title: 'Premium',
+      price: '₹600',
+      icon: Icons.stars_rounded,
+      gradient: const LinearGradient(
+        colors: [Color(0xFF00ACC1), Color(0xFF00897B)],
+      ),
+      points: const [
+        'Steam Wash',
+        'Sanitization',
+        'Engine Bay'
+      ],
+      onTap: () => _goCar(context, 'Premium'),
+    ),
+    _ServiceTile(
+      title: 'Pro',
+      price: '₹1600',
+      icon: Icons.auto_awesome_rounded,
+      gradient: const LinearGradient(
+        colors: [Color(0xFF00897B), Color(0xFF00695C)],
+      ),
+      points: const [
+        'Rubbing & Polishing',
+        'Deep Cleaning',
+        'Wax Coating'
+      ],
+      onTap: () => _goCar(context, 'Pro'),
+    ),
+    const SizedBox(height: 16),
+  ];
+
+  // ================= BIKE SERVICES =================
+  List<Widget> _bikeServices(BuildContext context) => [
+    _ServiceTile(
+      title: 'Two-Wheeler Wash',
+      price: '₹100',
+      icon: Icons.two_wheeler_rounded,
+      gradient: const LinearGradient(
+        colors: [Color(0xFF4DD0E1), Color(0xFF26C6DA)],
+      ),
+      points: const ['Exterior Wash', 'Chain Cleaning'],
+      onTap: () => _goBike(context, 'Two-Wheeler Wash', 100),
+    ),
+    _ServiceTile(
+      title: 'Ceramic Coating',
+      price: '₹3000',
+      icon: Icons.auto_awesome,
+      gradient: const LinearGradient(
+        colors: [Color(0xFF26C6DA), Color(0xFF00ACC1)],
+      ),
+      points: const ['3 Years Protection', 'High Gloss Finish'],
+      onTap: () => _goBike(context, 'Ceramic Coating (3 Years)', 3000),
+    ),
+    _ServiceTile(
+      title: 'Ceramic Coating',
+      price: '₹2500',
+      icon: Icons.stars,
+      gradient: const LinearGradient(
+        colors: [Color(0xFF00897B), Color(0xFF00695C)],
+      ),
+      points: const ['5 Years Protection', 'Scratch Resistance'],
+      onTap: () => _goBike(context, 'Ceramic Coating (5 Years)', 2500),
+    ),
+    const SizedBox(height: 16),
+  ];
+
+  // ================= NAVIGATION =================
+  void _goCar(BuildContext context, String service) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ServiceDetailScreen(serviceType: type),
+        builder: (_) => ServiceDetailScreen(serviceType: service),
+      ),
+    );
+  }
+
+  void _goBike(BuildContext context, String service, int price) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SlotBookingScreen(
+          serviceType: service,
+          carType: 'Bike',
+          price: price,
+        ),
       ),
     );
   }
 }
 
+// ================= TILE (UNCHANGED) =================
 class _ServiceTile extends StatelessWidget {
   final String title;
   final String price;
@@ -271,11 +337,8 @@ class _ServiceTile extends StatelessWidget {
                         padding: const EdgeInsets.only(bottom: 4),
                         child: Row(
                           children: [
-                            const Icon(
-                              Icons.check,
-                              size: 14,
-                              color: Color(0xFF00897B),
-                            ),
+                            const Icon(Icons.check,
+                                size: 14, color: Color(0xFF00897B)),
                             const SizedBox(width: 6),
                             Text(
                               e,
@@ -300,11 +363,8 @@ class _ServiceTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: Color(0xFF00897B),
-              ),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  size: 16, color: Color(0xFF00897B)),
             ],
           ),
         ),
