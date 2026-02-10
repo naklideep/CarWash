@@ -60,45 +60,49 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
   Future<void> _confirmBooking() async {
     if (selectedDate == null || selectedSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please select date and time slot'),
-          backgroundColor: Colors.red[400],
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+        const SnackBar(
+          content: Text('Please select date and time slot'),
+          backgroundColor: Colors.red,
         ),
       );
       return;
     }
 
-    setState(() {
-      isBooking = true;
-    });
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+    setState(() => isBooking = true);
+
+    final user = FirebaseAuth.instance.currentUser!;
+
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final userData = userDoc.data() ?? {};
+
     await FirebaseFirestore.instance.collection('appointments').add({
-      'userId': userId,
-      'serviceType': widget.serviceType,
+      'userId': user.uid,
+      'userName': userData['name'] ?? 'Guest User',
+      'userEmail': user.email ?? 'N/A',
+      'userPhone': userData['phone'] ?? 'N/A',
+
+      'serviceName': widget.serviceType,
       'carType': widget.carType,
-      'price': widget.price,
+      'servicePrice': widget.price,
       'appointmentDate': Timestamp.fromDate(selectedDate!),
       'timeSlot': selectedSlot,
+      'status': 'pending',
       'createdAt': Timestamp.now(),
     });
 
-    // Simulate booking process
-    await Future.delayed(const Duration(seconds: 2));
-
     if (!mounted) return;
 
-    // Show success dialog
+    setState(() => isBooking = false);
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -107,79 +111,43 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
               Container(
                 width: 80,
                 height: 80,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
                     colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
                   ),
-                  shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check_rounded,
-                  color: Colors.white,
-                  size: 48,
-                ),
+                child: const Icon(Icons.check, color: Colors.white, size: 40),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               const Text(
                 'Booking Confirmed!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF212121),
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               Text(
                 'Your ${widget.serviceType} service has been booked successfully',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                ),
               ),
               const SizedBox(height: 24),
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      // Pop dialog
-                      Navigator.of(context).pop();
-                      // Navigate to home screen (pop all previous screens)
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    },
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00897B),
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      alignment: Alignment.center,
-                      child: const Text(
-                        'Go to Home',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                   ),
                 ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.popUntil(context, (route) => route.isFirst);
+                },
+                child: const Text('Go Home'),
               ),
             ],
           ),
         ),
       ),
     );
-
-    setState(() {
-      isBooking = false;
-    });
   }
 
   @override

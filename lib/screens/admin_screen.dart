@@ -4,14 +4,16 @@ import '../services/firestore_service.dart';
 import '../models/appointment_model.dart';
 import '../utils/app_theme.dart';
 
-class AdminScreen extends StatefulWidget {
+class AdminScreen extends StatefulWidget
+{
   const AdminScreen({super.key});
 
   @override
   State<AdminScreen> createState() => _AdminScreenState();
 }
 
-class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStateMixin {
+class _AdminScreenState extends State<AdminScreen> with SingleTickerProviderStateMixin
+{
   late TabController _tabController;
 
   @override
