@@ -60,14 +60,12 @@ class FirestoreService {
     return _firestore
         .collection('appointments')
         .where('userId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true) // ✅ SAFE
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return AppointmentModel.fromMap(data, doc.id);
-      }).toList();
-    });
+        .map((snapshot) =>
+        snapshot.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          return AppointmentModel.fromMap(data, doc.id);
+        }).toList());
   }
 
   Stream<List<AppointmentModel>> getAllAppointments() {
