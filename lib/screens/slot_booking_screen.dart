@@ -34,6 +34,8 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
   Stream<Map<String, int>> slotCountStream(DateTime date) {
     return FirebaseFirestore.instance
         .collection('appointments')
+        .where('carType', isEqualTo: widget.carType.toLowerCase())
+
         .where(
       'appointmentDate',
       isGreaterThanOrEqualTo: Timestamp.fromDate(
@@ -86,7 +88,7 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
       'userPhone': userData['phone'] ?? 'N/A',
 
       'serviceName': widget.serviceType,
-      'carType': widget.carType,
+      'carType': widget.carType.toLowerCase(),
       'servicePrice': widget.price,
       'appointmentDate': Timestamp.fromDate(selectedDate!),
       'timeSlot': selectedSlot,
@@ -384,51 +386,27 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
                       if (selectedDate == null)
                         const Text('Select a date first')
                       else
-                        StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('appointments')
-                              .where(
-                            'appointmentDate',
-                            isGreaterThanOrEqualTo: Timestamp.fromDate(
-                              DateTime(
-                                selectedDate!.year,
-                                selectedDate!.month,
-                                selectedDate!.day,
-                              ),
-                            ),
-                          )
-                              .where(
-                            'appointmentDate',
-                            isLessThan: Timestamp.fromDate(
-                              DateTime(
-                                selectedDate!.year,
-                                selectedDate!.month,
-                                selectedDate!.day + 1,
-                              ),
-                            ),
-                          )
-                              .snapshots(),
+                        StreamBuilder<Map<String, int>>(
+                          stream: slotCountStream(selectedDate!),
                           builder: (context, snapshot) {
-                            final Map<String, int> slotCounts = {};
-
-                            if (snapshot.hasData) {
-                              for (var doc in snapshot.data!.docs) {
-                                final slot = doc['timeSlot'];
-                                slotCounts[slot] = (slotCounts[slot] ?? 0) + 1;
-                              }
-                            }
+                            final slotCounts = snapshot.data ?? {};
 
                             return Wrap(
                               spacing: 12,
                               runSpacing: 12,
                               children: timeSlots.map((slot) {
                                 final isSelected = selectedSlot == slot;
-                                final isFull = (slotCounts[slot] ?? 0) >= 2;
+
+                                // ⭐ slot capacity logic (change anytime)
+                                final maxSlots =
+                                widget.carType.toLowerCase().contains("bike") ? 4 : 2;
+
+                                final currentCount = slotCounts[slot] ?? 0;
+                                final isFull = currentCount >= maxSlots;
+                                final available = maxSlots - currentCount;
 
                                 return GestureDetector(
-                                  onTap: isFull
-                                      ? null
-                                      : () => setState(() => selectedSlot = slot),
+                                  onTap: isFull ? null : () => setState(() => selectedSlot = slot),
                                   child: Opacity(
                                     opacity: isFull ? 0.4 : 1,
                                     child: Container(
@@ -439,10 +417,7 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
                                       decoration: BoxDecoration(
                                         gradient: isSelected
                                             ? const LinearGradient(
-                                          colors: [
-                                            Color(0xFF26C6DA),
-                                            Color(0xFF00897B)
-                                          ],
+                                          colors: [Color(0xFF26C6DA), Color(0xFF00897B)],
                                         )
                                             : null,
                                         color: isSelected ? null : Colors.white,
@@ -454,24 +429,36 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
                                           width: 2,
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      child: Column(
                                         children: [
-                                          Icon(
-                                            Icons.access_time_rounded,
-                                            color: isSelected
-                                                ? Colors.white
-                                                : const Color(0xFF00897B),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.access_time_rounded,
+                                                color: isSelected
+                                                    ? Colors.white
+                                                    : const Color(0xFF00897B),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                slot,
+                                                style: TextStyle(
+                                                  color: isSelected
+                                                      ? Colors.white
+                                                      : const Color(0xFF212121),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(height: 4),
                                           Text(
-                                            isFull ? '$slot (Full)' : slot,
+                                            isFull ? "Full" : "$available spot left",
                                             style: TextStyle(
-                                              color: isSelected
-                                                  ? Colors.white
-                                                  : const Color(0xFF212121),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
+                                              fontSize: 12,
+                                              color: isSelected ? Colors.white70 : Colors.grey,
                                             ),
                                           ),
                                         ],
@@ -483,6 +470,7 @@ class _SlotBookingScreenState extends State<SlotBookingScreen> {
                             );
                           },
                         ),
+
 
 
                       const SizedBox(height: 80),

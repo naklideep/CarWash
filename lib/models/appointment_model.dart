@@ -11,6 +11,9 @@ class AppointmentModel {
   final double servicePrice;
   final DateTime appointmentDate;
   final String timeSlot;
+
+  final String carType; // ⭐ NEW
+
   final String carModel;
   final String carNumber;
   final String status;
@@ -28,6 +31,7 @@ class AppointmentModel {
     required this.servicePrice,
     required this.appointmentDate,
     required this.timeSlot,
+    required this.carType, // ⭐ NEW
     required this.carModel,
     required this.carNumber,
     required this.status,
@@ -51,6 +55,7 @@ class AppointmentModel {
           ? (map['appointmentDate'] as Timestamp).toDate()
           : DateTime.now(),
       timeSlot: map['timeSlot'] ?? '',
+      carType: map['carType'] ?? '', // ⭐ NEW
       carModel: map['carModel'] ?? '',
       carNumber: map['carNumber'] ?? '',
       status: map['status'] ?? 'pending',
@@ -72,6 +77,7 @@ class AppointmentModel {
       'servicePrice': servicePrice,
       'appointmentDate': Timestamp.fromDate(appointmentDate),
       'timeSlot': timeSlot,
+      'carType': carType, // ⭐ NEW
       'carModel': carModel,
       'carNumber': carNumber,
       'status': status,

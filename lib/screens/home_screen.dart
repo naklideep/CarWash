@@ -262,7 +262,7 @@ class _HomeTabState extends State<HomeTab> {
       MaterialPageRoute(
         builder: (_) => SlotBookingScreen(
           serviceType: service,
-          carType: 'Bike',
+          carType: 'bike',
           price: price,
         ),
       ),

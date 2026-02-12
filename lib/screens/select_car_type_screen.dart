@@ -143,7 +143,8 @@ class SelectCarTypeScreen extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => SlotBookingScreen(
                   serviceType: serviceType,
-                  carType: type,
+                  carType: "car",
+
                   price: price,
                 ),
               ),
